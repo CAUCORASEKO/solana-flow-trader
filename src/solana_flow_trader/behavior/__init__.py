@@ -8,6 +8,11 @@ from .library_builder import (
     BehavioralLibrary,
     BehavioralLibraryBuilder,
 )
+from .quality import (
+    BehaviorQualityProfile,
+    BehaviorQualityProfiler,
+    QualityLevel,
+)
 from .sample import BehaviorSample
 from .statistics import (
     BehaviorStatistics,
@@ -15,6 +20,8 @@ from .statistics import (
 )
 
 __all__ = [
+    "BehaviorQualityProfile",
+    "BehaviorQualityProfiler",
     "BehaviorSample",
     "BehaviorStatistics",
     "BehaviorStatisticsCalculator",
@@ -22,4 +29,5 @@ __all__ = [
     "BehavioralLibraryBuilder",
     "OutcomeDistribution",
     "OutcomeDistributionCalculator",
+    "QualityLevel",
 ]
