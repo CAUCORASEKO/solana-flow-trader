@@ -13,7 +13,9 @@ authors = [
   { name = "CAUCO70" }
 ]
 
-dependencies = []
+dependencies = [
+  "httpx>=0.27,<1.0",
+]
 
 [project.optional-dependencies]
 dev = [
