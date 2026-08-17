@@ -10,6 +10,7 @@ from .normalizer import (
     BirdeyeNormalizationError,
     BirdeyeNormalizer,
 )
+from .provider import BirdeyeProvider
 
 __all__ = [
     "BirdeyeClient",
@@ -17,5 +18,6 @@ __all__ = [
     "BirdeyeHTTPError",
     "BirdeyeNormalizationError",
     "BirdeyeNormalizer",
+    "BirdeyeProvider",
     "BirdeyeResponseError",
 ]
