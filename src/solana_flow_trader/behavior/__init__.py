@@ -1,5 +1,9 @@
 """Behavioral research tools."""
 
+from .distribution import (
+    OutcomeDistribution,
+    OutcomeDistributionCalculator,
+)
 from .library_builder import (
     BehavioralLibrary,
     BehavioralLibraryBuilder,
@@ -16,4 +20,6 @@ __all__ = [
     "BehaviorStatisticsCalculator",
     "BehavioralLibrary",
     "BehavioralLibraryBuilder",
+    "OutcomeDistribution",
+    "OutcomeDistributionCalculator",
 ]
