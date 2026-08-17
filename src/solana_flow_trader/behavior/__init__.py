@@ -5,9 +5,15 @@ from .library_builder import (
     BehavioralLibraryBuilder,
 )
 from .sample import BehaviorSample
+from .statistics import (
+    BehaviorStatistics,
+    BehaviorStatisticsCalculator,
+)
 
 __all__ = [
     "BehaviorSample",
+    "BehaviorStatistics",
+    "BehaviorStatisticsCalculator",
     "BehavioralLibrary",
     "BehavioralLibraryBuilder",
 ]
