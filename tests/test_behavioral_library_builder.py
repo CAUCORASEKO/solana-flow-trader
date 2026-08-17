@@ -3,18 +3,12 @@ from decimal import Decimal
 
 import pytest
 
-from solana_flow_trader.behavior import (
-    BehavioralLibraryBuilder,
-)
-from solana_flow_trader.collectors import (
-    SyntheticCollector,
-    SyntheticScenario,
-)
+from solana_flow_trader.behavior import BehavioralLibraryBuilder
+from solana_flow_trader.collectors import SyntheticCollector, SyntheticScenario
 from solana_flow_trader.events import HistoricalEventMiner
-from solana_flow_trader.features import (
-    PreEventFeatureExtractor,
-)
+from solana_flow_trader.features import PreEventFeatureExtractor
 from solana_flow_trader.matching import BehaviorLabel
+from solana_flow_trader.outcomes import OutcomeAnalyzer
 
 TOKEN = "LibraryToken111111111111111111111111111111"
 
@@ -59,6 +53,9 @@ def make_builder() -> BehavioralLibraryBuilder:
         feature_extractor=PreEventFeatureExtractor(
             window_seconds=15,
         ),
+        outcome_analyzer=OutcomeAnalyzer(
+            observation_seconds=30,
+        ),
     )
 
 
@@ -66,7 +63,7 @@ def test_build_returns_none_for_empty_input() -> None:
     assert make_builder().build([]) is None
 
 
-def test_build_creates_bull_behavior_sample() -> None:
+def test_build_creates_bull_behavior_sample_with_outcome() -> None:
     library = make_builder().build(
         make_snapshots(
             [
@@ -74,6 +71,8 @@ def test_build_creates_bull_behavior_sample() -> None:
                 "1.05",
                 "1.10",
                 "1.25",
+                "1.35",
+                "1.30",
             ]
         )
     )
@@ -83,7 +82,13 @@ def test_build_creates_bull_behavior_sample() -> None:
     assert library.bull_count == 1
     assert library.bear_count == 0
     assert len(library.samples) == 1
-    assert library.samples[0].label == BehaviorLabel.BULL
+
+    sample = library.samples[0]
+
+    assert sample.label == BehaviorLabel.BULL
+    assert sample.event_id == f"{TOKEN}:0"
+    assert sample.outcome.event_id == sample.event_id
+    assert sample.outcome.mfe_pct is not None
 
 
 def test_build_creates_bull_and_bear_samples() -> None:
@@ -110,6 +115,11 @@ def test_build_creates_bull_and_bear_samples() -> None:
     assert library.trap_count == 0
     assert len(library.samples) == 2
 
+    assert all(
+        sample.outcome.event_id == sample.event_id
+        for sample in library.samples
+    )
+
 
 def test_event_ids_are_stable_and_unique() -> None:
     library = make_builder().build(
@@ -131,12 +141,10 @@ def test_event_ids_are_stable_and_unique() -> None:
 
     assert library is not None
 
-    event_ids = [
+    assert [
         sample.event_id
         for sample in library.samples
-    ]
-
-    assert event_ids == [
+    ] == [
         f"{TOKEN}:0",
         f"{TOKEN}:1",
     ]

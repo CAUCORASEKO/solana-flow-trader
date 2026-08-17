@@ -4,10 +4,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from solana_flow_trader.behavior.sample import BehaviorSample
 from solana_flow_trader.events import EventDirection, HistoricalEventMiner
 from solana_flow_trader.features import PreEventFeatureExtractor
-from solana_flow_trader.matching import BehaviorLabel, LabeledFeatureVector
+from solana_flow_trader.matching import BehaviorLabel
 from solana_flow_trader.models import MarketSnapshot
+from solana_flow_trader.outcomes import OutcomeAnalyzer
 
 
 @dataclass(frozen=True, slots=True)
@@ -15,7 +17,7 @@ class BehavioralLibrary:
     """Historical behavior samples for one token."""
 
     token_mint: str
-    samples: tuple[LabeledFeatureVector, ...]
+    samples: tuple[BehaviorSample, ...]
 
     def __post_init__(self) -> None:
         if not self.token_mint.strip():
@@ -44,16 +46,18 @@ class BehavioralLibrary:
 
 
 class BehavioralLibraryBuilder:
-    """Create labeled behavioral samples from historical snapshots."""
+    """Create behavioral samples from historical snapshots."""
 
     def __init__(
         self,
         *,
         event_miner: HistoricalEventMiner,
         feature_extractor: PreEventFeatureExtractor,
+        outcome_analyzer: OutcomeAnalyzer,
     ) -> None:
         self.event_miner = event_miner
         self.feature_extractor = feature_extractor
+        self.outcome_analyzer = outcome_analyzer
 
     def build(
         self,
@@ -81,9 +85,11 @@ class BehavioralLibraryBuilder:
 
         events = self.event_miner.mine(ordered)
 
-        samples: list[LabeledFeatureVector] = []
+        samples: list[BehaviorSample] = []
 
         for index, event in enumerate(events):
+            event_id = f"{token_mint}:{index}"
+
             features = self.feature_extractor.extract(
                 event,
                 ordered,
@@ -92,15 +98,25 @@ class BehavioralLibraryBuilder:
             if features is None:
                 continue
 
+            outcome = self.outcome_analyzer.analyze(
+                event_id,
+                event,
+                ordered,
+            )
+
+            if outcome is None:
+                continue
+
             label = self._label_for_direction(
                 event.direction,
             )
 
             samples.append(
-                LabeledFeatureVector(
-                    event_id=f"{token_mint}:{index}",
+                BehaviorSample(
+                    event_id=event_id,
                     label=label,
                     features=features,
+                    outcome=outcome,
                 )
             )
 
